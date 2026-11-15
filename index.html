@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>introverTrader | License Portal</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0f1115;
+            color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        .container {
+            background: #181b22;
+            border: 1px solid #2d333b;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        h2 { margin-top: 0; font-size: 20px; color: #fff; }
+        p { color: #8b949e; font-size: 14px; line-height: 1.5; }
+        .key-box {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        code {
+            font-family: monospace;
+            font-size: 16px;
+            color: #58a6ff;
+            font-weight: bold;
+        }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        button:hover { background: #2ea043; }
+        .download-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #fff;
+            color: #000;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 20px;
+            box-sizing: border-box;
+        }
+        .download-btn:hover { background: #e6e6e6; }
+        .status { font-size: 13px; margin-top: 10px; }
+        .active { color: #3fb950; }
+        .inactive { color: #f85149; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>introverTrader Portal</h2>
+    <p>Your active subscription details and unique ATAS license key are displayed below.</p>
+
+    <div id="loading">Loading your license details...</div>
+
+    <div id="content" style="display: none;">
+        <p><strong>Customer:</strong> <span id="email-display"></span></p>
+        
+        <div class="key-box">
+            <code id="license-key">Loading...</code>
+            <button onclick="copyKey()">Copy Key</button>
+        </div>
+
+        <p>Status: <span id="status-display" class="status"></span></p>
+        <p>Expires: <span id="expiry-display"></span></p>
+
+        <a href="IDE_TEDD_A_LETOLTESI_LINKET" class="download-btn" target="_blank">Download Latest Indicator (.zip)</a>
+    </div>
+
+    <div id="error-box" style="display: none; color: #f85149; margin-top: 15px; font-size: 14px;"></div>
+</div>
+
+<script>
+    // 1. SUPABASE KONFIGURÁCIÓ (Írd be a saját adataidat)
+    const SUPABASE_URL = 'https://biyozmqmdhsqbmecutyh.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_ic_B5j-EsUEuk_8gJgUdyg_e3YRBQpW'; // A Supabase anon/public kulcsa
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadLicense() {
+        try {
+            // A Whop automatikusan átadhatja az email címet az URL-ben (pl. ?email=vasarlo@gmail.com)
+            // Vagy ha manuálisan teszteled, beírhatsz egy teszt e-mailt is fallback-ként.
+            const urlParams = new URLSearchParams(window.location.search);
+            const customerEmail = urlParams.get('email') || 'teszt.vasarlo@example.com'; 
+
+            if (!customerEmail || customerEmail === 'teszt.vasarlo@example.com') {
+                // Ha nincs email a paraméterben, kérhetünk tőle inputot vagy jelezhetjük
+                // De a Whop iframe-ben át tudja adni a változót.
+            }
+
+            document.getElementById('email-display').innerText = customerEmail;
+
+            // Lekérdezés a Supabase-ből
+            const { data, error } = await supabaseClient
+                .from('licenses')
+                .select('*')
+                .eq('customer_email', customerEmail)
+                .single();
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (error || !data) {
+                throw new Error("No active license found for this email address.");
+            }
+
+            // Adatok megjelenítése
+            document.getElementById('license-key').innerText = data.license_key;
+            
+            const statusSpan = document.getElementById('status-display');
+            if (data.is_active) {
+                statusSpan.innerText = "Active";
+                statusSpan.className = "status active";
+            } else {
+                statusSpan.innerText = "Inactive / Expired";
+                statusSpan.className = "status inactive";
+            }
+
+            document.getElementById('expiry-display').innerText = new Date(data.expires_at).toLocaleDateString();
+            document.getElementById('content').style.display = 'block';
+
+        } catch (err) {
+            document.getElementById('loading').style.display = 'none';
+            const errBox = document.getElementById('error-box');
+            errBox.style.display = 'block';
+            errBox.innerText = "Error: " + err.message;
+        }
+    }
+
+    function copyKey() {
+        const keyText = document.getElementById('license-key').innerText;
+        navigator.clipboard.writeText(keyText).then(() => {
+            alert("License key copied to clipboard!");
+        });
+    }
+
+    loadLicense();
+</script>
+
+</body>
+</html>
