@@ -68,7 +68,7 @@
             font-size: 13px;
             margin-top: 20px;
         }
-        .btn-download:hover { background: #ce-d7de; }
+        .btn-download:hover { background: #e2e8f0; }
         .loading { color: #8b949e; font-style: italic; }
         .error { color: #f85149; background: rgba(248,81,73,0.1); padding: 12px; border-radius: 6px; border: 1px solid rgba(248,81,73,0.3); }
     </style>
@@ -105,10 +105,9 @@
 
         async function initPortal() {
             const urlParams = new URLSearchParams(window.location.search);
-            const whopUserId = urlParams.get('whop_user_id');
+            // Kezeljük mind a whop_user_id, mind a user_id paramétereket
+            const whopUserId = urlParams.get('whop_user_id') || urlParams.get('user_id');
 
-            // Fallback teszteléshez (ha lokálisan vagy sima böngészőből nyitod meg teszt jelleggel)
-            // ?whop_user_id= user_xxx
             if (!whopUserId) {
                 showError("Missing Whop user session. Please open this portal directly through your Whop product link or button.");
                 return;
@@ -166,7 +165,6 @@
             });
         };
 
-        // Futtatás indításkor
         initPortal();
     </script>
 </body>
