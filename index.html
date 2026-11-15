@@ -95,7 +95,7 @@
         <p>Status: <span id="status-display" class="status"></span></p>
         <p>Expires: <span id="expiry-display"></span></p>
 
-        <a href="IDE_TEDD_A_LETOLTESI_LINKET" class="download-btn" target="_blank">Download Latest Indicator (.zip)</a>
+        <a href="https://www.dropbox.com/scl/fi/ghsaz6p2ni58beetjhrqw/Indicators.zip?rlkey=81b9gjcl8p88hobk3u6306x2x&dl=1" class="download-btn" target="_blank">Download Latest Indicator (.zip)</a>
     </div>
 
     <div id="error-box" style="display: none; color: #f85149; margin-top: 15px; font-size: 14px;"></div>
@@ -113,9 +113,9 @@
             // A Whop automatikusan átadhatja az email címet az URL-ben (pl. ?email=vasarlo@gmail.com)
             // Vagy ha manuálisan teszteled, beírhatsz egy teszt e-mailt is fallback-ként.
             const urlParams = new URLSearchParams(window.location.search);
-            const customerEmail = urlParams.get('email') || 'teszt.vasarlo@example.com'; 
+            const customerEmail = urlParams.get('email') || 'customer@example.com'; 
 
-            if (!customerEmail || customerEmail === 'teszt.vasarlo@example.com') {
+            if (!customerEmail || customerEmail === 'customer@example.com') {
                 // Ha nincs email a paraméterben, kérhetünk tőle inputot vagy jelezhetjük
                 // De a Whop iframe-ben át tudja adni a változót.
             }
