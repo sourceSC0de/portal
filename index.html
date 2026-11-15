@@ -6,6 +6,8 @@
     <title>introverTrader | License Portal</title>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Whop SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@whop-sdk/core"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -78,7 +80,7 @@
         .status { font-size: 13px; font-weight: 600; }
         .active { color: #3fb950; }
         .inactive { color: #f85149; }
-        #loading { text-align: color: #8b949e; font-style: italic; }
+        #loading { text-align: center; color: #8b949e; font-style: italic; }
     </style>
 </head>
 <body>
@@ -115,16 +117,41 @@
 
     async function loadLicense() {
         try {
-            const urlParams = new URLSearchParams(window.location.search);
-            const customerEmail = urlParams.get('email'); 
+            let customerEmail = null;
 
-            if (!customerEmail) {
-                throw new Error("No email parameter provided in the URL. Please open this portal via your authorized subscription link.");
+            // 1. Próbáljuk meg kinyerni az URL paraméterből (ha van, és nem sablon szöveg)
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramEmail = urlParams.get('email');
+            
+            if (paramEmail && !paramEmail.includes('{user.email}')) {
+                customerEmail = paramEmail;
+            }
+
+            // 2. Ha nincs az URL-ben, próbáljuk meg a Whop SDK-n keresztül lekérni
+            if (!customerEmail && window.Whop && typeof window.Whop.getUser === 'function') {
+                try {
+                    const user = await window.Whop.getUser();
+                    if (user && user.email) {
+                        customerEmail = user.email;
+                    }
+                } catch (e) {
+                    console.warn("Whop SDK user fetch failed:", e);
+                }
+            }
+
+            // 3. Fallback: ha lokálisan teszteled kézi e-mial paraméterrel
+            if (!customerEmail && paramEmail && paramEmail.includes('{user.email}')) {
+                // Ha a Whop beágyazás nem cserélte le, de lokálisan beírtuk teszthez
+                // Itt megadhatsz egy teszt emailt közvetlen teszteléshez, ha szükséges
+            }
+
+            if (!customerEmail || customerEmail.includes('{user.email}')) {
+                throw new Error("Could not automatically detect your email address inside Whop. Please ensure you are logged in.");
             }
 
             document.getElementById('email-display').innerText = customerEmail;
 
-            // .ilike használata a kis- és nagybetű független biztonságos kereséshez
+            // Lekérdezés a Supabase-ből
             const { data, error } = await supabaseClient
                 .from('licenses')
                 .select('*')
