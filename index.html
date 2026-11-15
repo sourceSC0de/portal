@@ -3,39 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>introverTrader | License Portal</title>
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Whop SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@whop-sdk/core"></script>
+    <title>introverTrader - ATAS License Portal</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0f1115;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0d1117;
             color: #f3f4f6;
-            margin: 0;
-            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            height: 100vh;
+            margin: 0;
         }
-        .container {
-            background: #181b22;
-            border: 1px solid #2d333b;
+        .portal-card {
+            background: #161b22;
+            border: 1px solid #30363d;
             border-radius: 12px;
             padding: 30px;
-            max-width: 480px;
             width: 100%;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            max-width: 440px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
         }
         h2 { margin-top: 0; font-size: 20px; color: #fff; }
-        p { color: #8b949e; font-size: 14px; line-height: 1.5; }
+        p { color: #8b949e; font-size: 13px; line-height: 1.5; }
         .key-box {
             background: #0d1117;
             border: 1px solid #30363d;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px 16px;
             margin: 20px 0;
             display: flex;
             justify-content: space-between;
@@ -43,11 +38,10 @@
         }
         code {
             font-family: monospace;
-            font-size: 16px;
+            font-size: 15px;
             color: #58a6ff;
             font-weight: bold;
             word-break: break-all;
-            margin-right: 10px;
         }
         button {
             background: #238636;
@@ -58,150 +52,122 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 12px;
-            transition: background 0.2s;
             white-space: nowrap;
+            transition: background 0.2s;
         }
         button:hover { background: #2ea043; }
-        .download-btn {
+        .btn-download {
             display: block;
-            width: 100%;
             text-align: center;
-            background: #fff;
-            color: #000;
+            background: #f0f6fc;
+            color: #0d1117;
             text-decoration: none;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             font-weight: bold;
+            font-size: 13px;
             margin-top: 20px;
-            box-sizing: border-box;
-            transition: background 0.2s;
         }
-        .download-btn:hover { background: #e6e6e6; }
-        .status { font-size: 13px; font-weight: 600; }
-        .active { color: #3fb950; }
-        .inactive { color: #f85149; }
-        #loading { text-align: center; color: #8b949e; font-style: italic; }
+        .btn-download:hover { background: #ce-d7de; }
+        .loading { color: #8b949e; font-style: italic; }
+        .error { color: #f85149; background: rgba(248,81,73,0.1); padding: 12px; border-radius: 6px; border: 1px solid rgba(248,81,73,0.3); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>introverTrader Portal</h2>
-    <p>Your active subscription details and unique ATAS license key are displayed below.</p>
+    <div class="portal-card">
+        <h2>introverTrader ATAS Portal</h2>
+        <p>Retrieving your verified subscription and license key automatically...</p>
 
-    <div id="loading">Loading your license details...</div>
+        <div id="content-area" style="margin-top: 20px;">
+            <div id="loading-state" class="loading">Authenticating with Whop...</div>
+            
+            <div id="success-state" style="display: none;">
+                <p style="margin-bottom: 5px;">Linked Email: <strong id="user-email" style="color: #f3f4f6;"></strong></p>
+                
+                <div class="key-box">
+                    <code id="license-key">Loading...</code>
+                    <button id="copy-btn" onclick="copyKey()">Copy Key</button>
+                </div>
 
-    <div id="content" style="display: none;">
-        <p><strong>Customer:</strong> <span id="email-display"></span></p>
-        
-        <div class="key-box">
-            <code id="license-key">Loading...</code>
-            <button id="copy-btn" onclick="copyKey()">Copy Key</button>
+                <p style="margin: 5px 0; font-size: 12px;">Status: <span id="license-status" style="font-weight: 600;"></span></p>
+                <p style="margin: 5px 0; font-size: 12px; color: #8b949e;">Expires: <span id="license-expiry"></span></p>
+
+                <a href="https://www.dropbox.com/scl/fi/ghsaz6p2ni58beetjhrqw/Indicators.zip?rlkey=81b9gjcl8p88hobk3u6306x2x&dl=1" target="_blank" class="btn-download">Download Latest Indicator (.zip)</a>
+            </div>
+
+            <div id="error-state" class="error" style="display: none;"></div>
         </div>
-
-        <p>Status: <span id="status-display" class="status"></span></p>
-        <p>Expires: <span id="expiry-display"></span></p>
-
-        <a href="https://www.dropbox.com/scl/fi/ghsaz6p2ni58beetjhrqw/Indicators.zip?rlkey=81b9gjcl8p88hobk3u6306x2x&dl=1" class="download-btn" target="_blank">Download Latest Indicator (.zip)</a>
     </div>
 
-    <div id="error-box" style="display: none; color: #f85149; margin-top: 15px; font-size: 14px; background: rgba(248,81,73,0.1); padding: 12px; border-radius: 6px; border: 1px solid rgba(248,81,73,0.3);"></div>
-</div>
+    <script>
+        const SUPABASE_FUNCTION_URL = 'https://biyozmqmdhsqbmecutyh.supabase.co/functions/v1/get-atas-license';
 
-<script>
-    // Supabase Konfiguráció
-    const SUPABASE_URL = 'https://biyozmqmdhsqbmecutyh.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_ic_B5j-EsUEuk_8gJgUdyg_e3YRBQpW';
-
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function loadLicense() {
-        try {
-            let customerEmail = null;
-
-            // 1. Próbáljuk meg kinyerni az URL paraméterből (ha van, és nem sablon szöveg)
+        async function initPortal() {
             const urlParams = new URLSearchParams(window.location.search);
-            const paramEmail = urlParams.get('email');
-            
-            if (paramEmail && !paramEmail.includes('{user.email}')) {
-                customerEmail = paramEmail;
+            const whopUserId = urlParams.get('whop_user_id');
+
+            // Fallback teszteléshez (ha lokálisan vagy sima böngészőből nyitod meg teszt jelleggel)
+            // ?whop_user_id= user_xxx
+            if (!whopUserId) {
+                showError("Missing Whop user session. Please open this portal directly through your Whop product link or button.");
+                return;
             }
 
-            // 2. Ha nincs az URL-ben, próbáljuk meg a Whop SDK-n keresztül lekérni
-            if (!customerEmail && window.Whop && typeof window.Whop.getUser === 'function') {
-                try {
-                    const user = await window.Whop.getUser();
-                    if (user && user.email) {
-                        customerEmail = user.email;
-                    }
-                } catch (e) {
-                    console.warn("Whop SDK user fetch failed:", e);
+            try {
+                const response = await fetch(`${SUPABASE_FUNCTION_URL}?whop_user_id=${whopUserId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to retrieve license key.");
                 }
+
+                // Adatok kitöltése
+                document.getElementById('user-email').innerText = data.email;
+                document.getElementById('license-key').innerText = data.license_key;
+                
+                const statusSpan = document.getElementById('license-status');
+                if (data.is_active) {
+                    statusSpan.innerText = "Active";
+                    statusSpan.style.color = "#3fb950";
+                } else {
+                    statusSpan.innerText = "Inactive";
+                    statusSpan.style.color = "#f85149";
+                }
+
+                document.getElementById('license-expiry').innerText = data.expires_at ? new Date(data.expires_at).toLocaleDateString() : "Lifetime / Active";
+
+                // Nézet váltás
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('success-state').style.display = 'block';
+
+            } catch (err) {
+                showError(err.message);
             }
-
-            // 3. Fallback: ha lokálisan teszteled kézi e-mial paraméterrel
-            if (!customerEmail && paramEmail && paramEmail.includes('{user.email}')) {
-                // Ha a Whop beágyazás nem cserélte le, de lokálisan beírtuk teszthez
-                // Itt megadhatsz egy teszt emailt közvetlen teszteléshez, ha szükséges
-            }
-
-            if (!customerEmail || customerEmail.includes('{user.email}')) {
-                throw new Error("Could not automatically detect your email address inside Whop. Please ensure you are logged in.");
-            }
-
-            document.getElementById('email-display').innerText = customerEmail;
-
-            // Lekérdezés a Supabase-ből
-            const { data, error } = await supabaseClient
-                .from('licenses')
-                .select('*')
-                .ilike('customer_email', customerEmail.trim())
-                .single();
-
-            document.getElementById('loading').style.display = 'none';
-
-            if (error || !data) {
-                throw new Error("No active license found for this email address (" + customerEmail + ").");
-            }
-
-            // Adatok megjelenítése
-            document.getElementById('license-key').innerText = data.license_key;
-            
-            const statusSpan = document.getElementById('status-display');
-            if (data.is_active) {
-                statusSpan.innerText = "Active";
-                statusSpan.className = "status active";
-            } else {
-                statusSpan.innerText = "Inactive / Expired";
-                statusSpan.className = "status inactive";
-            }
-
-            document.getElementById('expiry-display').innerText = data.expires_at ? new Date(data.expires_at).toLocaleDateString() : "Lifetime / Active";
-            document.getElementById('content').style.display = 'block';
-
-        } catch (err) {
-            document.getElementById('loading').style.display = 'none';
-            const errBox = document.getElementById('error-box');
-            errBox.style.display = 'block';
-            errBox.innerText = "Error: " + err.message;
         }
-    }
 
-    function copyKey() {
-        const keyText = document.getElementById('license-key').innerText;
-        navigator.clipboard.writeText(keyText).then(() => {
-            const btn = document.getElementById('copy-btn');
-            btn.innerText = "Copied!";
-            btn.style.background = "#1f6feb";
-            setTimeout(() => {
-                btn.innerText = "Copy Key";
-                btn.style.background = "#238636";
-            }, 2000);
-        });
-    }
+        function showError(message) {
+            document.getElementById('loading-state').style.display = 'none';
+            const errBox = document.getElementById('error-state');
+            errBox.innerText = message;
+            errBox.style.display = 'block';
+        }
 
-    loadLicense();
-</script>
+        window.copyKey = function() {
+            const keyText = document.getElementById('license-key').innerText;
+            navigator.clipboard.writeText(keyText).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.innerText = "Copied!";
+                btn.style.background = "#1f6feb";
+                setTimeout(() => {
+                    btn.innerText = "Copy Key";
+                    btn.style.background = "#238636";
+                }, 2000);
+            });
+        };
 
+        // Futtatás indításkor
+        initPortal();
+    </script>
 </body>
 </html>
