@@ -44,6 +44,8 @@
             font-size: 16px;
             color: #58a6ff;
             font-weight: bold;
+            word-break: break-all;
+            margin-right: 10px;
         }
         button {
             background: #238636;
@@ -55,6 +57,7 @@
             font-weight: 600;
             font-size: 12px;
             transition: background 0.2s;
+            white-space: nowrap;
         }
         button:hover { background: #2ea043; }
         .download-btn {
@@ -69,11 +72,13 @@
             font-weight: bold;
             margin-top: 20px;
             box-sizing: border-box;
+            transition: background 0.2s;
         }
         .download-btn:hover { background: #e6e6e6; }
-        .status { font-size: 13px; margin-top: 10px; }
+        .status { font-size: 13px; font-weight: 600; }
         .active { color: #3fb950; }
         .inactive { color: #f85149; }
+        #loading { text-align: color: #8b949e; font-style: italic; }
     </style>
 </head>
 <body>
@@ -89,7 +94,7 @@
         
         <div class="key-box">
             <code id="license-key">Loading...</code>
-            <button onclick="copyKey()">Copy Key</button>
+            <button id="copy-btn" onclick="copyKey()">Copy Key</button>
         </div>
 
         <p>Status: <span id="status-display" class="status"></span></p>
@@ -98,41 +103,38 @@
         <a href="https://www.dropbox.com/scl/fi/ghsaz6p2ni58beetjhrqw/Indicators.zip?rlkey=81b9gjcl8p88hobk3u6306x2x&dl=1" class="download-btn" target="_blank">Download Latest Indicator (.zip)</a>
     </div>
 
-    <div id="error-box" style="display: none; color: #f85149; margin-top: 15px; font-size: 14px;"></div>
+    <div id="error-box" style="display: none; color: #f85149; margin-top: 15px; font-size: 14px; background: rgba(248,81,73,0.1); padding: 12px; border-radius: 6px; border: 1px solid rgba(248,81,73,0.3);"></div>
 </div>
 
 <script>
-    // 1. SUPABASE KONFIGURÁCIÓ (Írd be a saját adataidat)
+    // Supabase Konfiguráció
     const SUPABASE_URL = 'https://biyozmqmdhsqbmecutyh.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_ic_B5j-EsUEuk_8gJgUdyg_e3YRBQpW'; // A Supabase anon/public kulcsa
+    const SUPABASE_ANON_KEY = 'sb_publishable_ic_B5j-EsUEuk_8gJgUdyg_e3YRBQpW';
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loadLicense() {
         try {
-            // A Whop automatikusan átadhatja az email címet az URL-ben (pl. ?email=vasarlo@gmail.com)
-            // Vagy ha manuálisan teszteled, beírhatsz egy teszt e-mailt is fallback-ként.
             const urlParams = new URLSearchParams(window.location.search);
-            const customerEmail = urlParams.get('email') || 'customer@example.com'; 
+            const customerEmail = urlParams.get('email'); 
 
-            if (!customerEmail || customerEmail === 'customer@example.com') {
-                // Ha nincs email a paraméterben, kérhetünk tőle inputot vagy jelezhetjük
-                // De a Whop iframe-ben át tudja adni a változót.
+            if (!customerEmail) {
+                throw new Error("No email parameter provided in the URL. Please open this portal via your authorized subscription link.");
             }
 
             document.getElementById('email-display').innerText = customerEmail;
 
-            // Lekérdezés a Supabase-ből
+            // .ilike használata a kis- és nagybetű független biztonságos kereséshez
             const { data, error } = await supabaseClient
                 .from('licenses')
                 .select('*')
-                .eq('customer_email', customerEmail)
+                .ilike('customer_email', customerEmail.trim())
                 .single();
 
             document.getElementById('loading').style.display = 'none';
 
             if (error || !data) {
-                throw new Error("No active license found for this email address.");
+                throw new Error("No active license found for this email address (" + customerEmail + ").");
             }
 
             // Adatok megjelenítése
@@ -147,7 +149,7 @@
                 statusSpan.className = "status inactive";
             }
 
-            document.getElementById('expiry-display').innerText = new Date(data.expires_at).toLocaleDateString();
+            document.getElementById('expiry-display').innerText = data.expires_at ? new Date(data.expires_at).toLocaleDateString() : "Lifetime / Active";
             document.getElementById('content').style.display = 'block';
 
         } catch (err) {
@@ -161,7 +163,13 @@
     function copyKey() {
         const keyText = document.getElementById('license-key').innerText;
         navigator.clipboard.writeText(keyText).then(() => {
-            alert("License key copied to clipboard!");
+            const btn = document.getElementById('copy-btn');
+            btn.innerText = "Copied!";
+            btn.style.background = "#1f6feb";
+            setTimeout(() => {
+                btn.innerText = "Copy Key";
+                btn.style.background = "#238636";
+            }, 2000);
         });
     }
 
