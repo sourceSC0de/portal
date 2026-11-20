@@ -9,13 +9,20 @@ export interface LicenseRecord {
   created_at: string;
 }
 
-export async function findLicenseForVerifiedEmail(email: string): Promise<LicenseRecord | null> {
-  const normalizedEmail = email.trim().toLowerCase();
+/**
+ * The payment webhook persists the verified Whop user ID in public.licenses.
+ * Do not use email, URL parameters, or a client-provided user ID as a fallback.
+ * Multiple licenses for one Whop user require manual review.
+ */
+export async function findLicenseForWhopUser(whopUserId: string): Promise<LicenseRecord | null> {
+  if (!/^user_[A-Za-z0-9]+$/.test(whopUserId)) {
+    throw new Error("Invalid Whop account identifier.");
+  }
+
   const { data, error } = await getSupabaseAdmin()
     .from("licenses")
     .select("id, license_key, customer_email, is_active, expires_at, created_at")
-    .eq("customer_email", normalizedEmail)
-    .order("created_at", { ascending: false })
+    .eq("whop_user_id", whopUserId)
     .limit(2);
 
   if (error) {
@@ -23,6 +30,8 @@ export async function findLicenseForVerifiedEmail(email: string): Promise<Licens
     throw new Error("The license service is temporarily unavailable.");
   }
   if (!data?.length) return null;
-  if (data.length > 1) throw new Error("More than one license is linked to this email. Please contact support so we can link the correct license.");
+  if (data.length > 1) {
+    throw new Error("Multiple licenses are linked to this Whop account. Please contact support.");
+  }
   return data[0] as LicenseRecord;
 }
