@@ -60,3 +60,12 @@ npm run build
 - The existing OAuth cookie/session flow needs an end-to-end test in Whop's embedded iframe, as browser cookie restrictions can differ from top-level navigation.
 - The portal does **not** send Resend emails; that integration belongs in a separately idempotent fulfillment process after successful payment.
 - Refund and chargeback automation should remain disabled until verified against actual Whop data.
+
+## Embedded Whop login (no second button)
+
+The Whop Experience and Company Dashboard views now use `@whop/sdk@0.0.3` to verify the `x-whop-user-token` header server-side, based on Whop's official Next.js app template. After verification, the portal queries Supabase `licenses.whop_user_id` for that exact Whop account. There is no URL/email-based fallback. Visiting an embedded route directly (without a verified header) fails closed.
+
+Set `WHOP_API_KEY` (Whop App API key) in **Vercel Production** as a **Secret**, separate from `WHOP_CLIENT_SECRET` and from Supabase keys. The standalone homepage and `/dashboard` still use the existing OAuth sign-in.
+
+**Before merge:** verify the pinned SDK exposes `verifyUserToken` in the installed package/build; test within the actual Whop iframe. This repository cannot validate the SDK/build or deployment automatically here. The currently deployed OAuth callback still needs proper JWT signature verification before relying on it as a production-grade login. Always test that the Whop embedded user ID matches the `user_...` ID stored on the correct license.
+
