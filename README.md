@@ -31,7 +31,7 @@ Copy `.env.example` to `.env.local` for local development and configure the same
 - `WHOP_CLIENT_SECRET`
 - `WHOP_SANDBOX` (`false` in production)
 - `SESSION_SECRET` (at least 32 characters)
-- `NEXT_PUBLIC_APP_URL` (`https://portal-mocha-theta.vercel.app`)
+- `APP_URL` (`https://portal-mocha-theta.vercel.app`)
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only)
 - `INDICATOR_DOWNLOAD_URL` (optional)
