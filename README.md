@@ -26,12 +26,12 @@ Copy `.env.example` to `.env.local` and fill in:
 - `WHOP_CLIENT_SECRET`
 - `WHOP_SANDBOX`
 - `SESSION_SECRET` (at least 32 characters; generate using `openssl rand -base64 32`)
-- `NEXT_PUBLIC_APP_URL` (no trailing slash)
+- `APP_URL` (no trailing slash)
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `INDICATOR_DOWNLOAD_URL` (optional)
 
-Add the same values to Vercel Project → Settings → Environment Variables. `NEXT_PUBLIC_APP_URL` should be `https://portal-mocha-theta.vercel.app` in Vercel.
+Add the same values to Vercel Project → Settings → Environment Variables. `APP_URL` should be `https://portal-mocha-theta.vercel.app` in Vercel.
 
 ## 3. Run locally
 
