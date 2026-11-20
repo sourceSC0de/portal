@@ -4,7 +4,7 @@ import { exchangeCodeForTokens, fetchUserInfo, readJwtPayload } from "@/lib/whop
 import { getSession } from "@/lib/session";
 import { getEnv } from "@/lib/env";
 
-function redirectTo(path: string) { return NextResponse.redirect(new URL(path, getEnv().NEXT_PUBLIC_APP_URL)); }
+function redirectTo(path: string) { return NextResponse.redirect(new URL(path, getEnv().APP_URL)); }
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
