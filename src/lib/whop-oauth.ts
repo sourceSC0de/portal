@@ -46,7 +46,7 @@ export async function buildAuthorizeUrl(pkce: PkceState): Promise<string> {
   const params = new URLSearchParams({
     response_type: "code",
     client_id: env.WHOP_CLIENT_ID,
-    redirect_uri: `${env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+    redirect_uri: `${env.APP_URL}/api/auth/callback`,
     scope: "openid profile email",
     state: pkce.state,
     nonce: pkce.nonce,
@@ -65,7 +65,7 @@ export async function exchangeCodeForTokens(code: string, codeVerifier: string):
     body: JSON.stringify({
       grant_type: "authorization_code",
       code,
-      redirect_uri: `${env.NEXT_PUBLIC_APP_URL}/api/auth/callback`,
+      redirect_uri: `${env.APP_URL}/api/auth/callback`,
       client_id: env.WHOP_CLIENT_ID,
       client_secret: env.WHOP_CLIENT_SECRET,
       code_verifier: codeVerifier,
