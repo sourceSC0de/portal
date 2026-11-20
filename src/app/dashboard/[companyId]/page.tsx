@@ -1,2 +1,2 @@
-import LicensePortal from "@/components/LicensePortal";
-export default function CompanyDashboardPage() { return <LicensePortal />; }
+import EmbeddedLicensePortal from "@/components/EmbeddedLicensePortal";
+export default function CompanyDashboardPage() { return <EmbeddedLicensePortal />; }
