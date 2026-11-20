@@ -10,8 +10,8 @@ function formatExpiry(value: string | null): string {
   return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
 
-export default async function LicensePortal() {
-  const user = await requireUser();
+export default async function LicensePortal({ verifiedEmbeddedWhopUserId }: { verifiedEmbeddedWhopUserId?: string } = {}) {
+  const user = verifiedEmbeddedWhopUserId ? { sub: verifiedEmbeddedWhopUserId, name: undefined, preferred_username: undefined, email: undefined } : await requireUser();
 
   let license = null;
   let lookupError: string | null = null;
@@ -40,7 +40,7 @@ export default async function LicensePortal() {
       {active && downloadUrl ? <a className="download" href={downloadUrl} target="_blank" rel="noreferrer">Download latest indicators (.zip) ↗</a> : active ? <p className="note">The download link has not been configured yet.</p> : null}
       {!active && <p className="note">Your license is currently inactive or has expired. The key is shown for reference but may not authenticate in ATAS.</p>}
     </>}
-    <div className="footer"><span>Signed in as {user.name ?? user.preferred_username ?? user.email ?? user.sub}</span><form action="/api/auth/logout" method="post"><button className="text-button" type="submit">Sign out</button></form></div>
+    <div className="footer"><span>Signed in as {user.name ?? user.preferred_username ?? user.email ?? user.sub}</span>{!verifiedEmbeddedWhopUserId && <form action="/api/auth/logout" method="post"><button className="text-button" type="submit">Sign out</button></form>}</div>
   </section></main>;
 }
 
