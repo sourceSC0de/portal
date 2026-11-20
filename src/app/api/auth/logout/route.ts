@@ -10,5 +10,5 @@ export async function POST() {
     catch (error) { console.warn("[oauth] token revocation failed:", error instanceof Error ? error.message : "unknown error"); }
   }
   session.destroy();
-  return NextResponse.redirect(new URL("/", getEnv().NEXT_PUBLIC_APP_URL), { status: 303 });
+  return NextResponse.redirect(new URL("/", getEnv().APP_URL), { status: 303 });
 }
